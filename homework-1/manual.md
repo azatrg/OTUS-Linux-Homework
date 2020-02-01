@@ -24,3 +24,101 @@
 
 - **Github** https://github.com/
 - **Vagrant Cloud** https://app.vagrantup.com
+
+
+---
+
+# **Установка ПО**
+
+## **Packer**
+
+На данный момент последняя версия Packer 1.5.1. Ссылка с дистрибутивами - https://www.packer.io/downloads.html . Я использую Ubuntu 18.04, gпоэтому качаю версию для Linux 64-bit. Там всего один бинарник в архиве. Качаю его и распаковываю в нужную мне папку.
+
+```
+wget https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
+unzip packer_1.5.1_linux_amd64.zip && sudo mv packer /usr/local/bin/packer
+```
+
+# **Обновление ядра**
+
+# ***Подготовка***
+
+Для простоты возьму Vagrantfile и скрипты для packer из методички. Для этого сделаю клинирование репозитория dmitry-lyutenko/manual_kernel_update
+
+```
+git clone git@github.com:dmitry-lyutenko/manual_kernel_update.git
+```
+
+Запускаю виртуальную машину описаную в Vagrantfile
+```
+vagrant up
+```
+
+Захожу на нее по ssh
+
+```
+vagrant ssh
+```
+
+Проверяю текущую версию ядра
+
+```
+uname -r
+3.10.0-862.14.4.el7.x86_64
+```
+
+# ***Обновление ядра***
+
+Обновление ядра буду производить из репозитория ELRepo.
+Для этого подключаю репозиторий
+
+```
+yum install https://www.elrepo.org/elrepo-release-7.0-4.el7.elrepo.noarch.rpm
+```
+В данном репозитории есть 2 версии ядер: kernel-lt - базирующаяся на ветке longterm архива ядер kernel.org и kernel-ml из ветки mainline.
+
+Посмотрим номера версий ядер.
+
+```
+yum --enablerepo elrepo-kernel info kernel-lt | grep Version
+Failed to set locale, defaulting to C
+Version     : 4.4.212
+
+yum --enablerepo elrepo-kernel info kernel-ml | grep Version
+Failed to set locale, defaulting to C
+Version     : 5.5.0
+```
+
+Установлю более стабильную версию
+
+```
+sudo yum --enablerepo elrepo-kernel install -y kernel-lt 
+```
+
+# ***Grub update***
+
+После установке ядра по умолчанию система будет загружаться со старым ядром. Для загрузки нового ядра его надо выбрать при загрузке системы в меню загрузчика grub. После этого оно будет загружатся по умолчанию. Для того чтобы назначить новое ядро по умолчанию надо изменить кофиг загрузчика.
+
+Обновим конфиг загрузчика
+```
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+
+```
+
+Выберем загрузку с новым ядром
+```
+sudo grub2-set-default 0
+```
+И перезагружаем машину
+
+```
+sudo reboot
+```
+
+После перезагрузки заходим еще раз и сморим версию ядра.
+
+```
+uname -r
+4.4.212-1.el7.elrepo.x86_64
+```
+Ядро успешно обновилось.

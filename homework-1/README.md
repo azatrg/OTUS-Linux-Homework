@@ -34,4 +34,39 @@ uname -r
 
 ### В процессе сделано.
 
+#### Сначала собрал ручками зайдя на машину по ssh.
+
+ - За основу взял базовый образ Centos 7.
+ - Для сборки ядра установил пакеты программ
+```
+sudo yum -y groupinstall "Development Tools"
+sudo yum install -y hmaccalc zlib-devel binutils-devel elfutils-libelf-devel bc openssl-devel wget
+
+```
+
+ - Затем скачал самое новое mainline ядро v5.5, распаковал архив и перешел в распакованную папку
+```
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.tar.xz
+tar -Jxvf linux-5.5.tar.xz
+cd linux-5.5
+```
+ - Скопировал конфиг текущего ядра и на его основе сделал конфиг для сборки. При этом выбрал опцию olddefconfig для того чтобы все новые функции нового ядра были выставлены в значение по умолчанию. 
+```
+cp /boot/config* .config &&
+make olddefconfig &&
+```
+ - Собрал ядро и модули
+```
+make -j 4 &&
+make -j 4 modules &&
+make -j 4 modules_install &&
+make -j 4 install
+```
+ - Удалил старое ядро, выбрал загрузку нового ядра по умолчанию и перезагрузил машину.
+ - После загрузки проверил версию ядра командой *uname -r*
+
+#### На основе приведенного выше примера собрал Vagrant Box.
+
+ - 
+
 

@@ -1,7 +1,7 @@
 # ДЗ №1. Обновить ядро в базовой системе.
 
  - [x] Создать образ с обновленным ядром и загрузить его в Vagrant Cloud. [Vagrantfile](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-1/Vagrantfile) для запуска.
- - [x] * Собрать ядро из исходников. [Vagrantfile](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-1/build-kernel/Vagrantfile) для запуска
+ - [x] * Собрать ядро из исходников, создал образ с самосборный ядром packer'ом. [Скрипты для сборки vagrantbox](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-1/build-kernel). Vagrantbox залил в vagrant cloud. [Vagrantfile](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-1/build-kernel/Vagrantfile) для запуска.
  - [ ] ** В созданном мной образе нормально работают VirtualBox Shared Folders.
 
 ---

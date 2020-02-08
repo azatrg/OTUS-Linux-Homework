@@ -1,8 +1,8 @@
 # ДЗ №2. Дисковая подсистема
 
- [ ] Создать скрипт для создания рейда, конф для автосборки рейда при загрузке
- [ ]* Vagrantfile, который сразу собирает систему с подключенным рейдом
- [ ]** перенесети работающую систему с одним диском на RAID 1. Даунтайм на загрузку с нового диска предполагается. В качестве проверики принимается вывод команды lsblk до и после и описание хода решения (можно воспользовать утилитой Script). 
+ - [ ] Создать скрипт для создания рейда, конф для автосборки рейда при загрузке
+ - [ ] * Vagrantfile, который сразу собирает систему с подключенным рейдом
+ - [ ] ** перенесети работающую систему с одним диском на RAID 1. Даунтайм на загрузку с нового диска предполагается. В качестве проверики принимается вывод команды lsblk до и после и описание хода решения (можно воспользовать утилитой Script). 
 
 ---
 
@@ -10,73 +10,144 @@
 
 ### В процессе работы сделано
 
- [x] Добавить в Vagrantfile еще дисков.
- [ ] Собрать raid
-
-#### Добавление дисков в Vagrantfile.
-
-За основу возьму Vagrantfile из первого домашнего задания и добавлю в него опции строки из [Vagrantfile от Алексея Цикунова, который есть в материалах второго урока](https://github.com/erlong15/otus-linux/blob/master/Vagrantfile) . Добавились следующие строки.
-
-1. В первой секции. Добавил 4 диска, указал папку, размер и порт котроллера через соответствующие переменные.
-
-```
-	#disks
-		:disks => {
-		:sata1 => {
-			:dfile => './sata1.vdi',
-			:size => 250,
-			:port => 1
-		},
-		:sata2 => {
-                        :dfile => './sata2.vdi',
-                        :size => 250, # Megabytes
-			:port => 2
-		},
-                :sata3 => {
-                        :dfile => './sata3.vdi',
-                        :size => 250,
-                        :port => 3
-                },
-                :sata4 => {
-                        :dfile => './sata4.vdi',
-                        :size => 250, # Megabytes
-                        :port => 4
-                }
-
-	},
-
-```
-2. Во второй секции внутри конструкции *box.vm.provider "virtualbox" do |vb|*, в которой указываются парметры виртуальной машины провайдера VirtualBox о которых подробнее можно почитать в [мануале](https://www.virtualbox.org/manual/ch08.html#vboxmanage-storagectl)
-В ruby и программировании я не силен, но в целом тут с помощью команд createhd, storageattach, storagectl и переменных из первой секции создаются контроллер и диски.
-
-```
-	# Set VM disks and controller
-	needsController = false
-		  boxconfig[:disks].each do |dname, dconf|
-			  unless File.exist?(dconf[:dfile])
-				vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
-                                needsController =  true
-                          end
-
-		  end
-                  if needsController == true
-                     vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
-                     boxconfig[:disks].each do |dname, dconf|
-                         vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
-                     end
-                  end
-	
-      end
-
-```
-
-Полный Vagrantfile выложен в репозитории. Идем дальше.
+ - [x] Добавить в Vagrantfile еще дисков.
+ - [x] Собрать raid
+ - [ ] Прописать собранный raid в conf, чтобы raid собирался при загрузке.
+ - [x] Сломать, починить raid
+ - [x] создать GPT раздел и 5 партиций и смонтировать их на диск
 
 ---
 
+#### Добавление дисков в Vagrantfile.
+
+В секцию *:disks => {}* после диска *sata4* добавлю еще один диск(не забыл поставить запятую после *}* ):
+```
+                :sata5 => {
+                        :dfile => './sata5.vdi',
+                        :size => 250, # Megabytes
+                        :port => 5
+		}
+
+```
+
+
 #### Собрать raid.
 
+1. Сначала проверяю что диски появились в системе.
 
+```
+sudo lshw -short | grep disk
+/0/100/1.1/0.0.0    /dev/sda   disk        42GB VBOX HARDDISK
+/0/100/d/0          /dev/sdb   disk        262MB VBOX HARDDISK
+/0/100/d/1          /dev/sdc   disk        262MB VBOX HARDDISK
+/0/100/d/2          /dev/sdd   disk        262MB VBOX HARDDISK
+/0/100/d/3          /dev/sde   disk        262MB VBOX HARDDISK
+/0/100/d/0.0.0      /dev/sdf   disk        262MB VBOX HARDDISK
+```
 
+2. Утилита mdadm не установлена по умолчанию, ставлю ее
 
+```
+sudo yum install -y mdadm
+```
+
+3. перед созданием raid надо занулить superblock
+
+```
+sudo mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
+```
+
+4. Создаю raid
+
+```
+sudo mdadm --create --verbose /dev/md0 -l 6 -n 5 /dev/sd{b,c,d,e,f}
+mdadm: layout defaults to left-symmetric
+mdadm: layout defaults to left-symmetric
+mdadm: chunk size defaults to 512K
+mdadm: size set to 253952K
+mdadm: Fail create md0 when using /sys/module/md_mod/parameters/new_array
+mdadm: Defaulting to version 1.2 metadata
+mdadm: array /dev/md0 started.
+```
+В данном примере я создаю raid 6 (-l 6)  из 5 дисков (-n 5 /dev/sd{b,c,d,e,f}) . В результате будет создано блочное устройство /dev/md0
+
+5. Для проверки создания raid-массиива использую команды:
+
+```
+cat /proc/mdstat
+sudo mdadm -D /dev/md0
+```
+
+#### Прописать raid в conf.
+
+Тут непонятно. Команда из методички не сработала т.к. не было ни папки /etc/mdadm, ни файла mdadm.conf. Даже когда создал папку и файл. Даже с sudo в файл не записалось. Пришлось делать sudo -s, только так смог создать файл. Также непонятно зачем это файл нужен т.к. после перезагрузки массив все равно присутствует.
+
+```
+sudo -s
+echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
+mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf 
+```
+
+#### Сломать\ починить raid.
+
+1. Искуственно помечу диск как нерабочий
+
+```
+sudo mdadm /dev/md0 --fail /dev/sdd
+```
+2. Для того чтобы посмотреть состояние массивa после выхода ис строя диска использую те же команды
+
+```
+cat /proc/mdstat
+sudo mdadm -D /dev/md0
+```
+3. Удаляю сбойный диск
+
+```
+sudo mdadm /dev/md0 --remove /dev/sdd
+```
+4. Потом после физического удаления сломанного диска и добавления вместо него нового диска, добавляю новый диск командой. Как я понимаю в реальной ситуации имя диска может отличаться. Лучше сначала узнать его имя командами *fdisk -l* или *lshw short | grep disk*
+
+```
+sudo mdadm /dev/md0 --add /dev/sdd
+```
+
+#### Создать GPT
+
+1. Для того чтобы создать разделы как описано в методичке надо установить пакеты parted (для разбивки диска этой утилитой) и e2fsprogs (для форматирования в ext4)
+
+```
+sudo yum install -y parted e2fsprogs
+```
+
+2. Создам раздел GPT на raid
+
+```
+sudo parted -s /dev/md0 mklabel gpt
+```
+3. Создам партиции
+```
+sudo parted /dev/md0 mkpart primary ext4 0% 20%
+sudo parted /dev/md0 mkpart primary ext4 20% 40%
+sudo parted /dev/md0 mkpart primary ext4 40% 60%
+sudo parted /dev/md0 mkpart primary ext4 60% 80%
+sudo parted /dev/md0 mkpart primary ext4 80% 100%
+```
+
+4. Отформатирую эти партиции в ext4
+
+```
+for i in $(seq 1 5); do sudo mkfs.ext4 /dev/md0p$i; done
+```
+5. Создам каталоги и смонтирую созданные ранее партиции в эти каталоги
+
+```
+sudo mkdir -p /raid/part{1,2,3,4,5}
+for i in $(seq 1 5); do sudo mount /dev/md0p$i /raid/part$i; done
+```
+6. Проверю что все партиции успешно подмонтировались.
+
+```
+df -h
+```
 

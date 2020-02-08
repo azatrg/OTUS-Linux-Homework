@@ -1,0 +1,108 @@
+# Describe VMs
+MACHINES = {
+  # VM name "kernel update"
+  :"azatrg-raid10" => {
+              # VM box
+              :box_name => "centos/7",
+              # VM CPU count
+              :cpus => 1,
+              # VM RAM size (Mb)
+              :memory => 1024,
+              # networks
+              :net => [],
+		#disks
+		:disks => {
+		:sata1 => {
+			:dfile => '/vm/disks/sata1.vdi',
+			:size => 250,
+			:port => 1
+		},
+		:sata2 => {
+                        :dfile => '/vm/disks/sata2.vdi',
+                        :size => 250, # Megabytes
+			:port => 2
+		},
+                :sata3 => {
+                        :dfile => '/vm/disks/sata3.vdi',
+                        :size => 250,
+                        :port => 3
+                },
+                :sata4 => {
+                        :dfile => '/vm/disks/sata4.vdi',
+                        :size => 250, # Megabytes
+                        :port => 4
+                }
+	},
+              # forwarded ports
+              :forwarded_port => []
+            }
+}
+
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    #  enable shared folders
+    config.vm.synced_folder ".", "/vagrant", disabled: false
+    # Apply VM config
+    config.vm.define boxname do |box|
+      # Set VM base box and hostname
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxname.to_s
+      # Additional network config if present
+      if boxconfig.key?(:net)
+        boxconfig[:net].each do |ipconf|
+          box.vm.network "private_network", ipconf
+        end
+      end
+      # Port-forward config if present
+      if boxconfig.key?(:forwarded_port)
+        boxconfig[:forwarded_port].each do |port|
+          box.vm.network "forwarded_port", port
+        end
+      end
+      # VM resources config
+      box.vm.provider "virtualbox" do |vb|
+        # Set VM RAM size and CPU count
+        vb.memory = boxconfig[:memory]
+        vb.cpus = boxconfig[:cpus]
+	# Set VM disks and controller
+	needsController = false
+		  boxconfig[:disks].each do |dname, dconf|
+			  unless File.exist?(dconf[:dfile])
+				vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
+                                needsController =  true
+                          end
+
+		  end
+                  if needsController == true
+                     vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+                     boxconfig[:disks].each do |dname, dconf|
+                         vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
+                     end
+                  end
+	
+      end
+      box.vm.provision "shell", inline: <<-SHELL
+	      mkdir -p ~root/.ssh
+          cp ~vagrant/.ssh/auth* ~root/.ssh
+		echo Install necessary tools
+		yum install -y mdadm parted e2fsprogs
+		echo Zero superblocks on disks
+		mdadm --zero-superblock --force /dev/sd{b,c,d,e}
+		echo create raid10
+		mdadm --create --verbose /dev/md0 -l 10 -n 4 /dev/sd{b,c,d,e}
+		echo label as gpt and create partitions
+		parted -s /dev/md0 mklabel gpt
+		parted /dev/md0 mkpart primary ext4 0% 25%
+		parted /dev/md0 mkpart primary ext4 25% 50%
+		parted /dev/md0 mkpart primary ext4 50% 75%
+		parted /dev/md0 mkpart primary ext4 75% 100%
+		echo Format partiions in ext4
+		for i in $(seq 1 4); do sudo mkfs.ext4 /dev/md0p$i; done
+		echo create directories and mount partitions
+		mkdir -p /raid/part{1,2,3,4}
+		for i in $(seq 1 4); do sudo mount /dev/md0p$i /raid/part$i; done
+  	  SHELL
+
+    end
+  end
+end

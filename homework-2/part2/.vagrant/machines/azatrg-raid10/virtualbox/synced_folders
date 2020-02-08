@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/azat/repo/OTUS-Linux-Homework/homework-2/part2","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}

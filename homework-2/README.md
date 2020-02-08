@@ -80,13 +80,23 @@ sudo mdadm -D /dev/md0
 
 #### Прописать raid в conf.
 
-Тут непонятно. Команда из методички не сработала т.к. не было ни папки /etc/mdadm, ни файла mdadm.conf. Даже когда создал папку и файл. Даже с sudo в файл не записалось. Пришлось делать sudo -s, только так смог создать файл. Также непонятно зачем это файл нужен т.к. после перезагрузки массив все равно присутствует.
+1. При попытке выполнить *sudo echo* и записать вывод в файл находящийся в /etc получал *Permission denied*. В первый раз решил проблему в лоб.
 
 ```
+sudo mkdir /etc/mdadm
 sudo -s
 echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
 mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf 
 ```
+2. 2-й способ. Более правильный. Погуглив понял что sudo echo не будет работать при записи в системный файл. Обойти это ограничени можно командой tee
+
+```
+echo "DEVICE partitions" | sudo tee -a /etc/mdadm/mdadm.conf
+sudo mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' | sudo tee -a /etc/mdadm/mdadm.conf
+```
+
+
+
 
 #### Сломать\ починить raid.
 

@@ -12,6 +12,15 @@ mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
 
 echo create raid6
 mdadm --create --verbose /dev/md0 -l 6 -n 5 /dev/sd{b,c,d,e,f}
+
+# Create mdadm.conf
+echo create mdadm.conf
+mkdir /etc/mdadm
+echo "DEVICE partitions" | sudo tee -a /etc/mdadm/mdadm.conf
+sudo mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' | sudo tee -a /etc/mdadm/mdadm.conf
+
+
+
 ##label as gpt and create partitions
 
 echo label as gpt and create partitions

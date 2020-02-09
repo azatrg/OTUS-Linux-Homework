@@ -1,7 +1,7 @@
 # Describe VMs
 MACHINES = {
   # VM name "kernel update"
-  :"azatrg-raid" => {
+  :"azatrg-raid10" => {
               # VM box
               :box_name => "centos/7",
               # VM CPU count
@@ -31,12 +31,7 @@ MACHINES = {
                         :dfile => './sata4.vdi',
                         :size => 250, # Megabytes
                         :port => 4
-                },
-                :sata5 => {
-                        :dfile => './sata5.vdi',
-                        :size => 250, # Megabytes
-                        :port => 5
-		}
+                }
 	},
               # forwarded ports
               :forwarded_port => []
@@ -45,7 +40,7 @@ MACHINES = {
 
 Vagrant.configure("2") do |config|
   MACHINES.each do |boxname, boxconfig|
-    # Disable shared folders
+    #  enable shared folders
     config.vm.synced_folder ".", "/vagrant", disabled: true
     # Apply VM config
     config.vm.define boxname do |box|
@@ -86,6 +81,32 @@ Vagrant.configure("2") do |config|
                   end
 	
       end
+      box.vm.provision "shell", inline: <<-SHELL
+	      mkdir -p ~root/.ssh
+          cp ~vagrant/.ssh/auth* ~root/.ssh
+		echo Install necessary tools
+		yum install -y mdadm parted e2fsprogs
+		echo Zero superblocks on disks
+		mdadm --zero-superblock --force /dev/sd{b,c,d,e}
+		echo create raid10
+		mdadm --create --verbose /dev/md0 -l 10 -n 4 /dev/sd{b,c,d,e}
+		echo create mdadm.conf
+		mkdir /etc/mdadm
+		echo "DEVICE partitions" | sudo tee -a /etc/mdadm/mdadm.conf
+		sudo mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' | sudo tee -a /etc/mdadm/mdadm.conf
+		echo label as gpt and create partitions
+		parted -s /dev/md0 mklabel gpt
+		parted /dev/md0 mkpart primary ext4 0% 25%
+		parted /dev/md0 mkpart primary ext4 25% 50%
+		parted /dev/md0 mkpart primary ext4 50% 75%
+		parted /dev/md0 mkpart primary ext4 75% 100%
+		echo Format partiions in ext4
+		for i in $(seq 1 4); do sudo mkfs --type=ext4 /dev/md0p$i; done
+		echo create directories and mount partitions
+		mkdir -p /raid/part{1,2,3,4}
+		for i in $(seq 1 4); do sudo mount /dev/md0p$i /raid/part$i; done
+  	  SHELL
+
     end
   end
 end

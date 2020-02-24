@@ -29,9 +29,8 @@ sudo xfsdump -J - /dev/VolGroup00/LogVol00 | sudo xfsrestore -J - /mnt
 5. Подмонтирую текущие папки /proc /sys / run /boot /dev в /mnt и сделаю chroot
 
 ```
-sudo -s
-for i in /proc/ /sys/ /dev/ /run/ /boot/;do mount --bind $i /mnt/$i; done
-chroot /mnt
+for i in /proc/ /sys/ /dev/ /run/ /boot/;do sudo mount --bind $i /mnt/$i; done
+sudo chroot /mnt
 ```
 6. Поменяю конфиг grub, для загрузки из нового / 
 

@@ -79,7 +79,7 @@ sudo lvcreate -n  LogVol00 -L 8G /dev/VolGroup00
 ```
 sudo mkfs.xfs /dev/VolGroup00/LogVol00
 sudo mount /dev/VolGroup00/LogVol00 /mnt
-sudo xfsdump -J - /dev/vg_root/lb_root | sudo xfsrestore -J - /mnt
+sudo xfsdump -J - /dev/vg_root/lv_root | sudo xfsrestore -J - /mnt
 ```
 12. Перенастраиваю grub, кроме изменеия файла grub.cfg
 
@@ -164,10 +164,10 @@ tmpfs                           tmpfs     118M     0  118M   0% /sys/fs/cgroup
 
 ```
 
-6. Удаляю временный том lb_root.
+6. Удаляю временный том lv_root.
 
 ```
-sudo lvremove /dev/vg_root/lb_root
+sudo lvremove /dev/vg_root/lv_root
 sudo vgremove vg_root
 sudo pvremove /dev/sdb
 ```

@@ -43,7 +43,11 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 ```
 cd /boot/; for i in `ls initramfs-*img`; do dracut -v $i `echo $i|sed "s/initramfs-//g;s/.img//g"` --force;done
 ```
-8. После этого в файле /boot/grub2/grub.cfg меняю rd.lvm/lv= со старого / на новый (временный). Выхожу из chroot.  И перезагружаюсь.
+8. После этого открываю файл /boot/grub2/grub.cfg в редакторе и меняю **rd.lvm.lv=VolGroup00/LogVol00** на **rd.lvm.lv=vg_root/lv_root**. Выхожу из chroot.  И перезагружаюсь.
+
+```
+vi /boot/grub2/grub.cfg
+```
 
 ```
 exit

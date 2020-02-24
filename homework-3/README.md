@@ -164,10 +164,10 @@ tmpfs                           tmpfs     118M     0  118M   0% /sys/fs/cgroup
 
 ```
 
-6. Удаляю временный том lb_root.
+6. Удаляю временный том lv_root.
 
 ```
-sudo lvremove /dev/vg_root/lb_root
+sudo lvremove /dev/vg_root/lv_root
 sudo vgremove vg_root
 sudo pvremove /dev/sdb
 ```

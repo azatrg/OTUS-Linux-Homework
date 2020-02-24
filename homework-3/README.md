@@ -120,7 +120,7 @@ mount  /dev/vg_var/lv_var /var
 4. И добавляю новый /var в fstab для автоматического монтирования при перезагрузке.
 
 ```
-echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fstab
+echo "`sudo blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" | sudo tee -a /etc/fstab
 ```
 
 5. Выхожу из chroot, перезагружась. После перезагрузки проверяю что все ок.
@@ -129,6 +129,7 @@ echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fst
 exit
 shutdown -r now
 ```
+
 ```
 lsblk
 NAME                     MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -194,7 +195,7 @@ sudo mount /dev/VolGroup00/LogVol_Home /home/
 
 4. Добавляю в fstab для автоматического монтирования.
 ```
-echo "`blkid | grep Home: | awk '{print $2}'` /home ext4 defaults 0 0" | sudo tee -a /etc/fstab
+echo "`sudo blkid | grep Home: | awk '{print $2}'` /home ext4 defaults 0 0" | sudo tee -a /etc/fstab
 ```
 
 ### Том для снэпшотов.
@@ -213,7 +214,12 @@ sudo lvcreate -L 100MB -s -n snap_home /dev/VolGroup00/LogVol_Home
 3. Удалю часть файлов.
 
 ```
-rm -f /home/vagrant/file{12..25}
+rm -f /home/vagrant/file{1..25}
+```
+```
+ls ~
+file26  file28  file30  file32  file34  file36  file38  file40  file42  file44  file46  file48  file50
+file27  file29  file31  file33  file35  file37  file39  file41  file43  file45  file47  file49  typescript
 ```
 
 4. Восстановлю данные со снэпшота.
@@ -222,6 +228,11 @@ sudo umount /home
 sudo lvconvert --merge /dev/VolGroup00/snap_home
 sudo mount /home
 ```
-
+```
+ls ~
+file1   file12  file15  file18  file20  file23  file26  file29  file31  file34  file37  file4   file42  file45  file48  file50  file8
+file10  file13  file16  file19  file21  file24  file27  file3   file32  file35  file38  file40  file43  file46  file49  file6   file9
+file11  file14  file17  file2   file22  file25  file28  file30  file33  file36  file39  file41  file44  file47  file5   file7   typescript
+```
 
 

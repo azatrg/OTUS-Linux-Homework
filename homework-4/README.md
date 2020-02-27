@@ -1,4 +1,4 @@
-#Bash, awk, sed, grep и другие
+# Bash, awk, sed, grep и другие
 
 ---
 

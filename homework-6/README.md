@@ -6,7 +6,21 @@
 
 1. Попасть в систему без пароля несколькими способами
 2. Установить систему с LVM, после чего переименовать VG
+Просмотреть решение можно с помощью scriptreplay [скрипт](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-6/scripts)
+
+```
+scriptreplay --timing=timimg_vg vg
+```
+
 3. Добавить модуль в initrd
+Просмотреть решение можно с помощью scriptreplay [скрипт](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-6/scripts)
+
+```
+scriptreplay --timing=timimg_initrd initrd
+```
+
+
+
 
 4(\*). Сконфигурировать систему без отдельного раздела с /boot, а только с LVM
 Репозиторий с пропатченым grub: https://yum.rumyantsev.com/centos/7/x86_64/
@@ -48,6 +62,8 @@ touch /.autorelabel
 exec /sbin/init 6
 ```
 
+![Alt Text](screenshots/2.png)
+ 
 6. После перезагрузки успешно захожу в систему с новым паролем=)
 
 #### 2й способ rd.break
@@ -76,11 +92,21 @@ touch /.autorelabel
 
 #### 3й Способ. rw init=/sysroot/bin/sh
 1. В строке начинающейся с linux16 меняю ro на rw init=sysroot/bin/sh (не в конце, а сразу после rw см.скртншот). Нажимаю ctrl+x для загрузки системы
+
+![Alt Text](screenshots/3.png)
+ 
 2. Почему-то этот способ не сработал сразу, а именно не срабатывал .autorelabel. Погуглив обнаружил что при повторной загрузке надо удалить **console=ttyS0,115220** из grub где прописано ядро. После этого autorelabel отработал и я смог зайти с новаым паролем.
 
 ---
 
 ### Установить систему с LVM и переименовать VG
+
+Просмотреть решение можно с помощью scriptreplay [скрипт](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-6/scripts)
+
+```
+scriptreplay --timing=timimg_vg vg
+```
+
 
 1. Сначала смотрим на текущее имя volume group
 ```
@@ -176,4 +202,7 @@ lsinitrd -m /boot/initramfs-$(uname -r).img | grep test
 Если все ок, то выведет строку *test*
 
 5. Включу в файле /boot/grub2/grub.cfg подробный лог при загрузке убрав "rghb quiet"
+
+![Alt Text](screenshots/5.png)
+ 
 6. Перезагружусь и в окне virtualbox увижу пингвинчика из файла test.sh. Модуль быьл успешно добавлен в initramfs.

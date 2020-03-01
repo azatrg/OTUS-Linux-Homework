@@ -79,6 +79,30 @@ touch /.autorelabel
 
 ### Установить систему с LVM и переименовать VG
 
-1. 
+1. Сначала смотрим на текущее имя volume group
+```
+sudo vgs
+  VG         #PV #LV #SN Attr   VSize   VFree
+  VolGroup00   1   2   0 wz--n- <38.97g    0 
+
+```
+Имя - VolGroup00
+2. Переменуем ее командой
+
+```
+sudo vgrename VolGroup00 MYLVM
+  Volume group "VolGroup00" successfully renamed to "MYLVM"
+```
+3. Теперь надо внести изменения в файлы /etc/fstab, /etc/default/grub , /boot/grub2/grub.cfg. Быстрее всего сделать это с помощью sed.
+```
+sudo sed -i 's/VolGroup00/MYLVM/g' /etc/fstab /etc/default/grub /boot/grub2/grub.cfg
+```
+4. Также надо пересоздать initrd.
+
+```
+sudo mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
+```
+
+5. После этого можно перезагрузиться и проверить.
 
 

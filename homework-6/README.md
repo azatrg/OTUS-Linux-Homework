@@ -123,7 +123,7 @@ mkdir /usr/lib/dracut/modules.d/01test
 2. Помещу туда 2 скрипта.
 1-й module-setup.sh нужен для установки модуля. Следующего содержания.
 ```
-i#!/bin/bash
+#!/bin/bash
 
 check() {
     return 0

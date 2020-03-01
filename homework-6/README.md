@@ -87,7 +87,14 @@ sudo vgs
 
 ```
 Имя - VolGroup00
-2. Переменуем ее командой
+
+Также надо обратить внимание на то куда подмонтировал swap файл, если на ту же VolumeGroup, то надо его предварительно отключить, чтобы он не вызвал зависание при перезагруке т.к. после переименования система будет пытаться его отмонтировать по старому пути.
+```
+cat /etc/fstab | grep swap
+sudo swapoff /dev/mapper/VolGroup00-LogVol01
+```
+
+2. Переменуем VG командой
 
 ```
 sudo vgrename VolGroup00 MYLVM
@@ -105,4 +112,65 @@ sudo mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
 
 5. После этого можно перезагрузиться и проверить.
 
+---
 
+### Добавить модуль в initrd
+
+1. В папке /usr/lib/dracut/modules.d/ создам папку для модуля с именем 01test
+```
+mkdir /usr/lib/dracut/modules.d/01test
+```
+2. Помещу туда 2 скрипта.
+1-й module-setup.sh нужен для установки модуля. Следующего содержания.
+```
+i#!/bin/bash
+
+check() {
+    return 0
+}
+
+depends() {
+    return 0
+}
+
+install() {
+    inst_hook cleanup 00 "${moddir}/test.sh"
+}
+```
+2-й Скрипт, который будет вызываться при загрузке. Следующего содержания.
+```
+#!/bin/bash
+
+exec 0<>/dev/console 1<>/dev/console 2<>/dev/console
+cat <<'msgend'
+Hello! You are in dracut module!
+ ___________________
+< I'm dracut module >
+ -------------------
+   \
+    \
+        .--.
+       |o_o |
+       |:_/ |
+      //   \ \
+     (|     | )
+    /'\_   _/`\
+    \___)=(___/
+msgend
+sleep 10
+echo " continuing...."
+```
+3. пересобираю initramfs
+
+```
+mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
+``` 
+
+4. Проверяю что модуль есть в только что созданной initramf
+```
+lsinitrd -m /boot/initramfs-$(uname -r).img | grep test
+```
+Если все ок, то выведет строку *test*
+
+5. Включу в файле /boot/grub2/grub.cfg подробный лог при загрузке убрав "rghb quiet"
+6. Перезагружусь и в окне virtualbox увижу пингвинчика из файла test.sh. Модуль быьл успешно добавлен в initramfs.

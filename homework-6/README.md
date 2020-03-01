@@ -1,4 +1,4 @@
-# Загрузка система
+# Загрузка системы
 
 ---
 
@@ -99,7 +99,7 @@ touch /.autorelabel
 
 ---
 
-### Установить систему с LVM и переименовать VG
+### 2. Установить систему с LVM и переименовать VG
 
 Просмотреть решение можно с помощью scriptreplay [скрипт](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-6/scripts)
 
@@ -143,7 +143,7 @@ sudo mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
 
 ---
 
-### Добавить модуль в initrd
+### 3.Добавить модуль в initrd
 
 1. В папке /usr/lib/dracut/modules.d/ создам папку для модуля с именем 01test
 ```

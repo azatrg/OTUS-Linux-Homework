@@ -1,0 +1,12 @@
+[Unit]
+Description=Run watcher script every 30 seconds
+
+[Timer]
+# Run every 30 seconds
+OnUnitActiveSec=30
+AccuracySec=1us
+Unit=watcher.service
+
+[Install]
+WantedBy=multi-user.target
+

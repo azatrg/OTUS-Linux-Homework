@@ -71,8 +71,7 @@ tcp    LISTEN     0      128      :::80                   :::*                  
 systemctl status httpd@first && systemctl status httpd@second
 ```
 
-**часть 3**. [Jira Unit](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/jira.service).
-[Описание решения](#Jira)
+**часть 3**.Не получилось засунуть установку сервиса в provision т.к установка интерактивная. Поэтому прикладываю  [Jira Unit](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/jira.service) и  [Описание решения](#Jira) .
 
 
 

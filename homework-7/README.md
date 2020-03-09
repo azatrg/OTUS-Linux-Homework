@@ -28,7 +28,7 @@
 
 
 ## Решение.
-***Часть 1-2.*** Склонировать [репозиторий](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/Vagrantfile) со всеми файлами. Запустить [Vagrantfile](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/Vagrantfile). 
+***Часть 1-2.*** Склонировать [репозиторий](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-7) со всеми файлами. Запустить [Vagrantfile](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/Vagrantfile). 
 ```
 vagrant up
 ```

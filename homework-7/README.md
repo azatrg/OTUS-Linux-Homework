@@ -72,7 +72,7 @@ systemctl status httpd@first && systemctl status httpd@second
 ```
 
 **часть 3**. [Jira Unit](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/jira.service).
-[Описание](### 3. Создать unit-файлы для сервиса:)
+[Описание решения](#Jira)
 
 
 
@@ -209,7 +209,7 @@ tcp    LISTEN     0      128      :::80                   :::\*                 
 ```
 
 ---
-### 3. Создать unit-файлы для сервиса:
+### <a name="Jira"></a> 3. Создать unit-файлы для сервиса:
 - сервис: Kafka, Jira или любой другой, у которого код успешного завершения не равен 0 (к примеру, приложение Java или скрипт с exit 143);
 - ограничить сервис по использованию памяти;
 - ограничить сервис ещё по трём ресурсам, которые не были рассмотрены на лекции;

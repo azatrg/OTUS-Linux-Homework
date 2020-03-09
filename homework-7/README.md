@@ -204,8 +204,8 @@ Listen 8080
 
 ```
 ss -tnulp | grep httpd
-tcp    LISTEN     0      128      :::8080                 :::*                   users:(("httpd",pid=3655,fd=4),("httpd",pid=3654,fd=4),("httpd",pid=3653,fd=4),("httpd",pid=3652,fd=4),("httpd",pid=3651,fd=4),("httpd",pid=3650,fd=4),("httpd",pid=3649,fd=4))
-tcp    LISTEN     0      128      :::80                   :::*                   users:(("httpd",pid=3641,fd=4),("httpd",pid=3640,fd=4),("httpd",pid=3639,fd=4),("httpd",pid=3638,fd=4),("httpd",pid=3637,fd=4),("httpd",pid=3636,fd=4),("httpd",pid=3635,fd=4))
+tcp    LISTEN     0      128      :::8080                 :::\*                   users:(("httpd",pid=3655,fd=4),("httpd",pid=3654,fd=4),("httpd",pid=3653,fd=4),("httpd",pid=3652,fd=4),("httpd",pid=3651,fd=4),("httpd",pid=3650,fd=4),("httpd",pid=3649,fd=4))
+tcp    LISTEN     0      128      :::80                   :::\*                   users:(("httpd",pid=3641,fd=4),("httpd",pid=3640,fd=4),("httpd",pid=3639,fd=4),("httpd",pid=3638,fd=4),("httpd",pid=3637,fd=4),("httpd",pid=3636,fd=4),("httpd",pid=3635,fd=4))
 ```
 
 ---

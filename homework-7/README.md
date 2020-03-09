@@ -28,7 +28,52 @@
 
 
 ## Решение.
-1-2. 
+***Часть 1-2.*** Склонировать [репозиторий](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/Vagrantfile) со всеми файлами. Запустить [Vagrantfile](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/Vagrantfile). 
+```
+vagrant up
+```
+После окончания провиженинга
+```
+vagrant ssh
+```
+Просмотр срабатывания таймера
+```
+sudo tail -f /var/log/messages 
+Mar  9 18:06:56 localhost systemd: Removed slice User Slice of vagrant.
+Mar  9 18:07:25 localhost systemd: Starting My watcher service...
+Mar  9 18:07:25 localhost root: Mon Mar  9 18:07:25 UTC 2020: I found word, Master!
+Mar  9 18:07:25 localhost systemd: Started My watcher service.
+Mar  9 18:07:39 localhost systemd: Created slice User Slice of vagrant.
+Mar  9 18:07:39 localhost systemd: Started Session 4 of user vagrant.
+Mar  9 18:07:39 localhost systemd-logind: New session 4 of user vagrant.
+Mar  9 18:07:55 localhost systemd: Starting My watcher service...
+Mar  9 18:07:55 localhost root: Mon Mar  9 18:07:55 UTC 2020: I found word, Master!
+Mar  9 18:07:55 localhost systemd: Started My watcher service.
+Mar  9 18:08:25 localhost systemd: Starting My watcher service...
+Mar  9 18:08:25 localhost root: Mon Mar  9 18:08:25 UTC 2020: I found word, Master!
+Mar  9 18:08:25 localhost systemd: Started My watcher service.
+Mar  9 18:08:55 localhost systemd: Starting My watcher service...
+Mar  9 18:08:55 localhost root: Mon Mar  9 18:08:55 UTC 2020: I found word, Master!
+Mar  9 18:08:55 localhost systemd: Started My watcher service.
+Mar  9 18:09:25 localhost systemd: Starting My watcher service...
+Mar  9 18:09:25 localhost root: Mon Mar  9 18:09:25 UTC 2020: I found word, Master!
+Mar  9 18:09:25 localhost systemd: Started My watcher service.
+```
+2 Сервиса httpd на разных портах
+```
+sudo ss -antulp | grep -E "80|8080"
+tcp    LISTEN     0      128      :::8080                 :::*                   users:(("httpd",pid=6052,fd=4),("httpd",pid=6051,fd=4),("httpd",pid=6050,fd=4),("httpd",pid=5959,fd=4),("httpd",pid=5958,fd=4),("httpd",pid=5957,fd=4),("httpd",pid=5956,fd=4),("httpd",pid=5955,fd=4),("httpd",pid=5954,fd=4),("httpd",pid=5953,fd=4))
+tcp    LISTEN     0      128      :::80                   :::*                   users:(("httpd",pid=6063,fd=4),("httpd",pid=6062,fd=4),("httpd",pid=6061,fd=4),("httpd",pid=6060,fd=4),("httpd",pid=6059,fd=4),("httpd",pid=6058,fd=4),("httpd",pid=5950,fd=4),("httpd",pid=5948,fd=4),("httpd",pid=5947,fd=4),("httpd",pid=5945,fd=4),("httpd",pid=5944,fd=4),("httpd",pid=5943,fd=4))
+
+``` 
+или
+```
+systemctl status httpd@first && systemctl status httpd@second
+```
+
+**часть 3**. [Jira Unit](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-7/jira.service).
+[Описание](### 3. Создать unit-файлы для сервиса:)
+
 
 
 ---
@@ -164,8 +209,7 @@ tcp    LISTEN     0      128      :::80                   :::*                  
 ```
 
 ---
-
-### 3. Создать unit-файл(ы) для сервиса:
+### 3. Создать unit-файлы для сервиса:
 - сервис: Kafka, Jira или любой другой, у которого код успешного завершения не равен 0 (к примеру, приложение Java или скрипт с exit 143);
 - ограничить сервис по использованию памяти;
 - ограничить сервис ещё по трём ресурсам, которые не были рассмотрены на лекции;

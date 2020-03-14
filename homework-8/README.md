@@ -27,7 +27,7 @@ yum repolist enabled | grep otus
 ```
 Можно отключить epel и поставить пакет из локального репозиторий
 ```
-yum repolist enabled | grep otus
+yum-config-manager --disable epel
 yum install -y lighttpd
 ```
 

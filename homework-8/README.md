@@ -11,10 +11,32 @@
 * реализовать дополнительно пакет через docker
 
 ---
+## Решение.
 
-### Решение
+1. Прикладываю [SPEC-файл](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-8/lighttpd.spec) и собранный [RPM c веб-сервером lighttpd](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-8/RPM/lighttpd-1.4.54-1.el7.x86_64.rpm) . Подробное описание сборки ниже.
 
-##### 1. Создать свое приложение.
+2. Скопировать себе  все файлы из [папки c ДЗ](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-8). Запустить Vagrantfile
+
+```
+vagrant up
+```
+Проверить что репозиторий подключен и там есть пакет
+
+```
+yum repolist enabled | grep otus
+```
+Можно отключить epel и поставить пакет из локального репозиторий
+```
+yum repolist enabled | grep otus
+yum install -y lighttpd
+```
+
+
+---
+
+### Подробное описание решения
+
+##### 1. Собрать свой RPM.
 
 1. Для сборки RPM установить пакеты:
 
@@ -119,6 +141,7 @@ sudo systemctl restart nginx
 7. Проверяю в браузере пройдя по ссылке - http://192.168.11.102/repo/
 
 8. Теперь подключу свой репозиторий к yum. Создам файл - 
+
 ````
 cat >> /etc/yum.repos.d/otus.repo << EOF
 [otus]
@@ -128,12 +151,15 @@ gpgcheck=0
 enabled=1
 EOF
 ```
+
 9. Проверю что репозиторий подключился
 
 ```
 yum repolist enabled | grep otus
 ```
+
 10. Для установки пакета lighttpd из локального репозитония надо отключить репозиторий epel
+
 ```
 yum-config-manager --disable epel
 ```

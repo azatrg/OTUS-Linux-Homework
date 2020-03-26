@@ -1,0 +1,12 @@
+FROM alpine:latest
+
+LABEL maintainer="azat.r.garaev@[hidden].ru"
+
+RUN apk update
+RUN apk --no-cache add nginx
+RUN mkdir /run/nginx
+RUN mkdir -p /usr/share/nginx/html
+RUN chown -R nginx:nginx /usr/share/nginx/html/
+EXPOSE 80
+STOPSIGNAL SIGTERM
+CMD ["nginx", "-g", "daemon off;"]

@@ -4,12 +4,13 @@
 - предоставлен Vagrantfile и готовый playbook/роль ( инструкция по запуску стенда, если посчитаете необходимым )
 - после запуска стенда nginx доступен на порту 8080
 - при написании playbook/роли соблюдены перечисленные в задании условия
-Критерии оценки: Ставим 5 если создан playbook
-Ставим 6 если написана роль
+
+Критерии оценки: Ставим 5 если создан playbook - Выполнено. [Ссылка на playbook](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-10/ansible_books/nginx.yml)
+Ставим 6 если написана роль - Выполнено. [Ссылка на роль](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-10/nginx-role)
 
 ---
 
-##Решение
+## Решение
 
 
 

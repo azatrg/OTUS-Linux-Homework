@@ -9,141 +9,55 @@
 Собранный образ необходимо запушить в docker hub и дать ссылку на ваш
 репозиторий.
 
-*\ Создайте кастомные образы nginx и php, объедините их в docker-compose.
+* Создайте кастомные образы nginx и php, объедините их в docker-compose.
 После запуска nginx должен показывать php info.
 Все собранные образы должны быть в docker hub
 
 ## Решение.
 
-### Установка Docker.
+#### Образ Nginx
 
-1. Официальная инструкция для Centos доступна по [ссылке](https://docs.docker.com/install/linux/docker-ce/centos/)
-2. Подключаем репо 
+1. Подготовил [Dockerfile](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-11/Dockerfile_nginx)
+2. Для сборки в папке с Dockerfile выполню команду
 ```
-sudo yum install -y yum-utils device-mapper-persistent-data lvm2 && \
-  sudo yum-config-manager --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
+docker build -t nginx:v0.3 .
 ```
-3. Установка docker
+3. Залью образ в dockerhub
 ```
-sudo yum install -y docker-ce docker-ce-cli containerd.io
+docker tag nginx:v0.3 azatrg/nginx:v0.3
+docker push azatrg/nginx:v0.3
 ```
-4. Запускаю службу и проверяю работоспособность.
+4. Проверка образа
 ```
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo docker run hello-world
-```
-5. Для запуска контейнеров от обычного пользователя добавляю его в группу docker
-```
-sudo usermod -aG docker $(whoami)
+docker run -d -p 8081:80 azatrg/nginx:v0.3
+curl 127.0.0.1:8081
 ```
 
-6. Docker-compose ставиться отдельно путем копирования из репозитория на github.
+#### Образ Php-fpm
 
-```
-sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
+1. Подготовил [Dockerfile](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-11/Dockerfile_php-fpm)
 
+2. Сборка аналогично образу с nginx, но имя образа будет php-fpm:v0.3 
 
-### Запуск контейнеров
-
-Для запуска и подключения к контейнеру надо выполнить команду
-```
-docker run -it alpine:latest
-```
-Для отключения без остановки можно использовать горячие клавиши ctrl+P ctrl+q
-
-Для запуска в бэкграунде надо добавить ключ -d
-```
-docker run -d alpine:latest
-```
-или если первый вариант не сработал
-```
-docker run -d alpine tail -f /dev/null
-```
-Для входа в shell контейнера 
-```
-docker exec -it <container id> /bin/sh
-```
-
-### Dockerfile
-
-#### Nginx
-
-Dockerfile это файл с именем Dockerfile в текущей директории в котором описывается как собирать образ. В примере ниже я буду собирать обрз с nginx из легковесного alpine
-1. Установка nginx
-```
-apk update
-apk --no-cache add nginx
-```
-2. создам необходимые папки
-```
-mkdir /run/nginx
-mkdir -p /usr/share/nginx/html
-chown -R nginx:nginx /usr/share/nginx/html/
-```
-3. Запуск\проверка конфига\перезагрузка конфига
-```
-nginx
-nginx -t
-nginx -s reload
-```
-4. Скопировать конфиги /etc/nginx/conf.d/default.conf и файлы /usr/share/nginx/html/index.html
-5. Добавить подключение к php
-
-#### Php
-
-1. Установлю php 7 и php-fpm
-```
-apk update
-apk --no-cache add php7 php7-fpm
-```
-*1* Возможно надо еще добавить эту команду для того чтобы образ был еще меньше
-```
-rm -rf /var/cache/apk/*
-```
-2. поправить конфиг php-fpm который лежит - ls /etc/php7/php-fpm.conf и /etc/php7/php-fpm.d/www.conf 
-
-```
-listen = 9000
-```
-
-#### Создание Image и загрузка в dockerhub
-
-1. В папке с Dockerfile выполнить 
-```
-docker build -t aznginx:v0.2 .
-```
-запуск контейнера
-```
-docker run -d -p 7777:80 aznginx:v0.2
-```
-
-2. Зарегистрироваться на сайте [https://hub.docker.com/](https://hub.docker.com/) и создать репозиторий.
-
-3. Залогиниться в docker hub из cli
-
-```
-docker login
-```
-Загрузить образ в dockerhub
-```
-docker tag aznginx:v0.2 azatrg/otusnginx:v0.1
-docker push azatrg/otusnginx:v0.
-```
 
 #### docker compose nginx+php.
 
-1. Подготовка конфигов.
- Внесу следующие изменения
+1. Подготовил файл [docker-compose.yml](https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-11/docker-compose.yml)
 
-
-2. Файл с описанием називается docker-compose.yml создам его.
-3. Файл должен быть примерно следующего содержания
+2. Перед запуском проверить что в текущей папке присутствуют файлы
 
 ```
+├── default_php.conf		# конфиг nginx
+├── docker-compose.yml		# файл для docker-compose
+├── index.php			# заглавная страница с php info
+└── www.conf			# Конфиг php-fpm
 
 ```
-4. Почему-то писало ошибку file not found. как я понял php-fpm не мог прочитать. Помогло добавление volume с этим файлом также в  контенер с php-fpm. Насколько корректно так делать?
+3. Выполнить команду
+```
+docker-compose up -d
+```
+
+4. Для проверки зайти браузером на 127.0.0.1:8080 - должна открыться страница с php info
+
+

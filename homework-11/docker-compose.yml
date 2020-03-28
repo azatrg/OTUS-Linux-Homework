@@ -1,7 +1,7 @@
 version: "3"
 services:
     web:
-        image: azatrg/otusnginx:v0.1
+        image: azatrg/nginx:v0.3
         container_name: web
         depends_on:
             - php
@@ -19,7 +19,7 @@ services:
                 - web
 
     php:
-        image: azatrg/otus-php-fpm:v0.2
+        image: azatrg/php-fpm:v0.3
         container_name: php
         volumes:
             - ./www.conf:/etc/php7/php-fpm.d/www.conf

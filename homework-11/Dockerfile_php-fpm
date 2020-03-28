@@ -3,7 +3,7 @@ FROM alpine:latest
 LABEL maintainer="azat.r.garaev@[hidden].ru"
 
 RUN apk update
-RUN apk --no-cache php7 php7-fpm
+RUN apk add --no-cache php7 php7-fpm
 
 EXPOSE 9000
 

@@ -26,9 +26,7 @@ services:
             - ./index.php:/usr/share/nginx/html/index.php
         networks:
             front_net:
-#            ipv4_address: 10.20.30.20
-#            aliases:
-#               - php
+
 networks:
     front_net:
         ipam:

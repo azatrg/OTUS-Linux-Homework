@@ -28,8 +28,9 @@ https://github.com/mbfx/otus-linux-adm/blob/master/selinux_dns_problems/
 - 1 балл: для задания 2 предложено более одного способа решения;
 - 1 балл: для задания 2 обоснованно(!) выбран один из способов решения.
 
+---
 
-## Решение
+## Решение. Задание 1
 
 ### переключатель setsebool
 1.1.1  Поменяю порт который слушает nginx в конфиге /etc/nginx/nginx.cong
@@ -66,6 +67,9 @@ type=AVC msg=audit(1587596681.711:1416): avc:  denied  { name_bind } for  pid=12
 setsebool -P nis_enabled 1
 ```
 Прикладываю скриншот.
+![alt text](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-12/setsebool.png?raw=true)
+
+---
 
 ### Добавление порта в имеющийся тип
 
@@ -88,10 +92,13 @@ semanage port -a -t http_port_t -p tcp 8088
 1.2.3 Перезапускаю nginx. Но перед этим возвращаю значение nis_enabled на 0 для того чтобы сработал именно способ с добавлениме порта. 
 
 Прикладываю скриншот.
+![alt text](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-12/change%20type.png?raw=true)
+
+---
 
 ### Формирование и установка модуля SELinux
 
-1.3.1 Перед формированием модуля удалю порт из типа добавленный в редудыщей части.
+1.3.1 Перед формированием модуля удалю порт из типа добавленный в предудыщей части.
 
 ```
 setsebool -P nis_enabled 0
@@ -126,14 +133,12 @@ semodule -i httpd_add_port.pp
 ```
 
 Прикладываю скриншот.
-
-## Часть 2
-
----
-
-Проверить **semanage permissive -a named_t** , но это не лучше чем setenforce 0
+![alt text](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-12/semodule.png?raw=true)
 
 ---
+
+## Часть 2. Проблема с DNS.
+
 
 
 1. Поднял стенд  с dns. Попытался внести изненение в зону с клиента по инструкции.
@@ -146,7 +151,16 @@ semodule -i httpd_add_port.pp
 update failed: SERVFAIL
 >
 ```
-2. Ошибка на сервере, поэтому иду туда смотреть в /var/log/audit/audit.log . Там вижу следующее
+
+#### Вариант решения 0. Отключить политику selinux для named.
+```
+semanage permissive -a named_t
+```
+Ошибка уйдет и получиться обновить зону, но это не наш путь т.к. в этой случае named не будет защищен selinux. Поэтому этот вариант не подойдет.
+
+Идем дальше.
+
+2. Ошибка на сервере, поэтому иду туда смотреть в /var/log/audit/audit.log на ns01 . Там вижу следующее
 
 ```
 [root@ns01 vagrant]# cat /var/log/audit/audit.log 
@@ -156,94 +170,24 @@ type=SYSCALL msg=audit(1587806218.533:1977): arch=c000003e syscall=2 success=no 
 type=PROCTITLE msg=audit(1587806218.533:1977): proctitle=2F7573722F7362696E2F6E616D6564002D75006E616D6564002D63002F6574632F6E616D65642E636F6E66
 
 ```
-3. Понятно только что selinux что-то заблокировал для pid 7143 это собственно и есть служба днс сервера.
 
-4. Воспользуюься audit2why для более понятного вывода ошибки поиска решения.
-
+3. Причина в том процессу named (служба ДНС сервера) нехватает прав для создание файла named.ddns.lab.view1.jnl в папке /etc/named/dynamic/ . Если посмотреть контексты, то они не совпадают - named имеет контекст named_t, а файл зоны etc_t.
 ```
-[root@ns01 vagrant]# audit2why < /var/log/audit/audit.log 
-type=AVC msg=audit(1587806218.533:1977): avc:  denied  { create } for  pid=7143 comm="isc-worker0000" name="named.ddns.lab.view1.jnl" scontext=system_u:system_r:named_t:s0 tcontext=system_u:object_r:etc_t:s0 tclass=file permissive=0
-
-	Was caused by:
-		Missing type enforcement (TE) allow rule.
-
-		You can use audit2allow to generate a loadable module to allow this access.
-
-```
-5. Сгенерировал модуль, установил, но ошибка осталась. В логах появилась новая ошибка. Поменялся только t_context
-
+ps auxZ  | grep named
+system_u:system_r:named_t:s0    named    27142  0.0 32.6 234608 78596 ?        Ssl  12:41   0:00 /usr/sbin/named -u named -c /etc/named.conf
+unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 root 27226 0.0  0.1 112780 416 pts/0 R+ 12:59   0:00 grep --color=auto named
 ```
 
 ```
-не мог dir search
-
-И еще один запрет
-```
-audit2why < /var/log/audit/audit.log 
-type=AVC msg=audit(1587810850.451:32): avc:  denied  { read } for  pid=1532 comm="isc-worker0000" name="ip_local_port_range" dev="proc" ino=18672 scontext=system_u:system_r:named_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=file permissive=0
-
-	Was caused by:
-		Missing type enforcement (TE) allow rule.
-
-		You can use audit2allow to generate a loadable module to allow this access.
+ls -Z /etc/named/dynamic/
+-rw-rw----. named named system_u:object_r:etc_t:s0       named.ddns.lab
+-rw-rw----. named named system_u:object_r:etc_t:s0       named.ddns.lab.view1
 
 ```
-не может file read
-
-и еще
-```
-type=AVC msg=audit(1587811253.324:32): avc:  denied  { open } for  pid=1532 comm="isc-worker0000" path="/proc/sys/net/ipv4/ip_local_port_range" dev="proc" ino=18673 scontext=system_u:system_r:named_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=file permissive=0
-
-	Was caused by:
-		Missing type enforcement (TE) allow rule.
-
-		You can use audit2allow to generate a loadable module to allow this access.
-
-type=AVC msg=audit(1587811253.333:33): avc:  denied  { open } for  pid=1532 comm="isc-worker0000" path="/proc/sys/net/ipv4/ip_local_port_range" dev="proc" ino=18673 scontext=system_u:system_r:named_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=file permissive=0
-
-	Was caused by:
-		Missing type enforcement (TE) allow rule.
-
-		You can use audit2allow to generate a loadable module to allow this access.
+Для более подробного анализа ошибки можно также использовать утилиту sealert
 
 ```
-
-и еще 
-
-```
-type=AVC msg=audit(1587811576.257:32): avc:  denied  { getattr } for  pid=1530 comm="isc-worker0000" path="/proc/sys/net/ipv4/ip_local_port_range" dev="proc" ino=18672 scontext=system_u:system_r:named_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=file permissive=0
-
-	Was caused by:
-		Missing type enforcement (TE) allow rule.
-
-		You can use audit2allow to generate a loadable module to allow this access.
-
-```
-
-Теперь вообще перестало писать в audit.log 
-
----
-
-6. Как вариант попробую запустить named в permissive domain (отключу selinux для конкретной службы).
-
-```
-semanage permissive -a named_t
-systemctl restart named
-```
-не помогло
-
----
-
-Попытка №2 
-
-1. Воспользуюсь утилитой sealert
-
-```
-sealert -a /var/log/audit/audit.log 
-
-```
-Вывод команды:
-```
+ sealert -a /var/log/audit/audit.log 
 100% done
 found 1 alerts in /var/log/audit/audit.log
 --------------------------------------------------------------------------------
@@ -259,27 +203,36 @@ SELinux запрещает /usr/sbin/named доступ create к файл named
 где FILE_TYPE может принимать значения: dnssec_trigger_var_run_t, ipa_var_lib_t, krb5_host_rcache_t, krb5_keytab_t, named_cache_t, named_log_t, named_tmp_t, named_var_run_t, named_zone_t. 
 Затем выполните: 
 restorecon -v 'named.ddns.lab.view1.jnl'
-
-
-*****  Модуль catchall предлагает (точность 17.1)  ***************************
-
-Если вы считаете, что named должно быть разрешено create доступ к named.ddns.lab.view1.jnl file по умолчанию.
-То рекомендуется создать отчет об ошибке.
-Чтобы разрешить доступ, можно создать локальный модуль политики.
-Сделать
-allow this access for now by executing:
-# ausearch -c 'isc-worker0000' --raw | audit2allow -M my-iscworker0000
-# semodule -i my-iscworker0000.pp
-
 ```
 
-2. Попробую первый способ.
-
-semanage fcontext -a -t named_cache_t "/etc/named/dynamic(/.*)?" 
-restorecon -v /etc/named/dynamic
-
-Также полезно при поиске
+4. Нужно поменять контекст на другой. Для получения списка контекстов для named использую команду:
 ```
-sesearch -A -s named_t | grep cache
-semanage fcontext -l | grep named
+semanage fcontext -l | grep dynamic
+/var/named/dynamic(/.*)?                           all files          system_u:object_r:named_cache_t:s0 
+/var/named/chroot/var/named/dynamic(/.*)?          all files          system_u:object_r:named_cache_t:s0 
 ```
+
+Из этого делаю вывод что файл named.ddns.lab.view1.jnl (точнее папка где он находиться - /etc/named/dynamic/) должен иметь контекст named_cache_t. Меняю его командой
+
+#### Вариант решения 1. Изменить контекст папки для того чтобы у процесса named был доступ к файлу.
+
+```
+semanage fcontext -a -t named_cache_t '/etc/named/dynamic(/.*)?'
+restorecon -v '/etc/named/dynamic/'
+```
+
+5. После этого еще раз сношу изменение в зону. Ошибки при добавлении записи нет. Проверяю что запись создана помощью dig.
+
+```
+dig  www.ddns.lab @192.168.50.10 +short
+192.168.50.15
+```
+
+#### Вариант решения 2. Изменить пути к файлам зон.
+
+Хранение файлов зон в папке /etc/named не совсем верное решение т.к. папка /etc предназначена для конфигов. Для хранения зон предназначена папка /var/named и подпапки в ней. [Ссылка на статью на redhat.com](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/deployment_guide/s2-bind-zone). SElinux также судя по контекстам в папке /var/named/ ожидает что там будут лежать зоны. 
+Исходя из вышеперечисленного мной выбрано следующее решение.
+
+Изменить пути к файлам зон в named.conf и provision.yml. 
+Исправленный вариант залил в свой [репозиторий](https://github.com/azatrg/OTUS-Linux-Homework/tree/master/homework-12/otus-linux-adm/selinux_dns_problems). 
+

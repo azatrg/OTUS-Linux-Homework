@@ -1,6 +1,9 @@
 #!/bin/bash
 # Program name: pingall.sh
 date
+echo -------------------------------
+ip route | grep default
+echo -------------------------------
 cat ./ip.txt |  while read output
 do
     ping -c 1 "$output" > /dev/null

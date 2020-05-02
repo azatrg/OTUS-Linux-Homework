@@ -139,4 +139,14 @@ Office2----/
 |office2Server| eth1 | 192.168.1.130 |office2Router |
 
 
-Все маршруты и настройки применяются через shell provision в вагранте. Для проверки можно воспользоваться скриптом pingall.sh
+Сеть разворачивается из (Vagrantfile)[https://raw.githubusercontent.com/azatrg/OTUS-Linux-Homework/master/homework-16/Vagrantfile]
+Все маршруты и настройки применяются через shell provision в вагранте. 
+Единственное почему-то не отрабатывает `systemctl restart network`, поэтому маршруты в скриптах добавил по 2 раза (в конфиг для того чтобы изменения сохранились и командой ip для того чтобы работало сразу после провиженинга)
+
+Для проверки можно воспользоваться скриптом pingall.sh.
+
+```
+vagrant ssh <machine name>
+cd /vagrant/ && ./pingall.sh
+```
+

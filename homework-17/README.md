@@ -18,6 +18,7 @@
 
 1. Для входа на inetRouter запустить скрипт knock.sh
 
+
 ```
 /vagrant/knock.sh
 ```
@@ -28,7 +29,7 @@
 
 ---
 
-
+![Схема](https://github.com/azatrg/OTUS-Linux-Homework/blob/master/homework-17/iptables.jpeg)
 
 ## Решение
 

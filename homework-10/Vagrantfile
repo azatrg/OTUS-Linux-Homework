@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
 begin 
           box.vm.provision "ansible" do |ansible|
             ansible.verbose = "vv"
-            ansible.playbook = "ansible_books/nginx_run_role.yml"
+            ansible.playbook = "ansible_books/nginx.yml"
             ansible.inventory_path = "inventory"
             ansible.become = "true"
           end
